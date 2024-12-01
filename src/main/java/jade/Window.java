@@ -19,6 +19,8 @@ public class Window {
     private int height;
     private String title;
     private long glfwWindow;
+    private float r, g, b, a;
+    private boolean fadeToBlack = false;
 
     private static Window window = null;
 
@@ -26,6 +28,11 @@ public class Window {
         this.width = 1920;
         this.height = 1080;
         this.title = "Mario";
+        r = 1;
+        g = 1;
+        b = 1;
+        a = 1;
+
     }
 
     public static Window get() {
@@ -71,6 +78,11 @@ public class Window {
             throw new RuntimeException("Failed to create the GLFW window");
         }
 
+        glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback);
+        glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
+        glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
+        glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
+
         // Make the OpenGL context current
         glfwMakeContextCurrent(glfwWindow);
         // Enable v-sync
@@ -95,13 +107,20 @@ public class Window {
             // Poll for window events. The key callback above will only be
             // invoked during this call.
             glfwPollEvents();
-            glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+            glClearColor(r, g, b, a);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
-            glfwSwapBuffers(glfwWindow); // swap the color buffers
+            if (fadeToBlack) {
+                r = Math.max(r - 0.01f, 0);
+                g = Math.max(g - 0.01f, 0);
+                b = Math.max(b - 0.01f, 0);
+            }
+            if(KeyListener.isKeyPressed(GLFW_KEY_SPACE)) {
+                fadeToBlack = true;
+            }
 
-
+            glfwSwapBuffers(glfwWindow); // swap the color buffer
         }
     }
 }
